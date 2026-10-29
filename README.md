@@ -16,4 +16,4 @@ A free, single-page tool that turns monthly income into a yearly estimate. Add a
 
 Estimate only, not tax or financial advice.
 
-Built by Veteran Vision Media.
+Made by Cody Mackall.
