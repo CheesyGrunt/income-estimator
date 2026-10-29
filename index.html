@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Free yearly income estimator. Add monthly taxed and VA income lines and see your yearly total. Nothing leaves your browser.">
+<title>Yearly Income Estimator</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23004E64'/%3E%3Ctext x='16' y='23' font-size='20' font-family='Arial' font-weight='bold' fill='white' text-anchor='middle'%3E$%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --teal:#004E64; --indigo:#27187E; --ink:#0E1418; --mist:#E0E5E9; --bg:#F7F7FF; --card:#FFFFFF; --muted:#5A6670;
+  box-sizing:border-box;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --teal:#6AA5B4; --indigo:#A99BF5; --ink:#EEF2F4; --mist:#2A3640; --bg:#0F1A20; --card:#16232B; --muted:#9AA8B2;
+  }
+}
+:root[data-theme="dark"]{
+  --teal:#6AA5B4; --indigo:#A99BF5; --ink:#EEF2F4; --mist:#2A3640; --bg:#0F1A20; --card:#16232B; --muted:#9AA8B2;
+}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Montserrat,"Segoe UI",Arial,sans-serif;font-size:16px;line-height:1.5;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+main{max-width:640px;margin:0 auto;padding:28px 16px 40px}
+h1{font-family:Oswald,"Arial Narrow",Arial,sans-serif;font-weight:700;font-size:2rem;line-height:1.1;margin:0 0 6px;color:var(--teal);letter-spacing:.01em}
+h2{font-family:Oswald,"Arial Narrow",Arial,sans-serif;font-weight:500;font-size:1.15rem;color:var(--teal);margin:0 0 10px}
+.sub{margin:0 0 6px;color:var(--muted);font-size:.95rem}
+.privacy{margin:0 0 24px;font-size:.82rem;color:var(--muted)}
+.privacy b{color:var(--teal)}
+.panel{background:var(--card);border:1px solid var(--mist);border-radius:6px;padding:20px;margin-bottom:18px}
+.row{display:grid;grid-template-columns:120px 1fr 130px 36px;gap:8px;align-items:center;margin-bottom:10px}
+.colhead{display:grid;grid-template-columns:120px 1fr 130px 36px;gap:8px;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:6px}
+select,input{width:100%;font:inherit;font-size:1rem;padding:9px 10px;border:1px solid var(--mist);border-radius:4px;background:var(--bg);color:var(--ink)}
+.money{position:relative}
+.money span{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.money input{padding-left:22px;text-align:right;font-variant-numeric:tabular-nums}
+select:focus,input:focus{outline:2px solid var(--teal);outline-offset:1px}
+.del{width:36px;height:40px;border:1px solid var(--mist);background:transparent;color:var(--muted);border-radius:4px;cursor:pointer;font-size:1.1rem;line-height:1;padding:0}
+.del:hover{color:var(--indigo);border-color:var(--indigo)}
+.add{margin-top:4px}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:10px 4px;border-bottom:1px solid var(--mist)}
+th{font-family:Oswald,"Arial Narrow",Arial,sans-serif;font-weight:500;color:var(--teal);font-size:.95rem}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+tr.total td{border-bottom:none;font-weight:600;padding-top:14px}
+tr.total td.big{font-family:Oswald,"Arial Narrow",Arial,sans-serif;font-size:1.6rem;color:var(--indigo)}
+.note{font-size:.82rem;color:var(--muted);margin:14px 0 0}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+button.btn{font:inherit;font-weight:600;padding:10px 16px;border-radius:4px;border:1px solid var(--teal);background:var(--teal);color:#fff;cursor:pointer}
+button.ghost{background:transparent;color:var(--teal)}
+button:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
+footer{text-align:center;font-size:.8rem;color:var(--muted);margin-top:28px}
+footer i{display:block;margin-top:4px}
+@media (max-width:520px){
+  .colhead{display:none}
+  .row{grid-template-columns:1fr 36px;grid-template-areas:"type del" "desc desc" "amt amt";padding-bottom:12px;border-bottom:1px solid var(--mist)}
+  .row .t{grid-area:type}.row .d{grid-area:desc}.row .money{grid-area:amt}.row .del{grid-area:del}
+}
+@media print{
+  @page{size:letter;margin:.5in}
+  body{background:#fff;color:#000}
+  .panel{border-color:#ccc;break-inside:avoid}
+  .actions,.del,.add,.privacy{display:none}
+  select,input{border:none;background:none;-webkit-appearance:none;appearance:none}
+}
+</style>
+</head>
+<body>
+<main>
+  <h1>Yearly Income Estimator</h1>
+  <p class="sub">Add each monthly income line. Yearly figures update as you type.</p>
+  <p class="privacy"><b>Private by design.</b> Everything stays in your browser. Nothing is saved, stored, or sent anywhere.</p>
+
+  <div class="panel">
+    <h2>Monthly income</h2>
+    <div class="colhead"><span>Type</span><span>Description (optional)</span><span style="text-align:right">Monthly</span><span></span></div>
+    <div id="rows"></div>
+    <button type="button" class="btn ghost add" id="add">+ Add income line</button>
+  </div>
+
+  <div class="panel">
+    <h2>Yearly estimate</h2>
+    <table aria-live="polite">
+      <thead><tr><th>Type</th><th class="num">Monthly</th><th class="num">Yearly</th></tr></thead>
+      <tbody>
+        <tr><td>Taxed income</td><td class="num" id="tM">$0.00</td><td class="num" id="tY">$0.00</td></tr>
+        <tr><td>VA income</td><td class="num" id="vM">$0.00</td><td class="num" id="vY">$0.00</td></tr>
+        <tr class="total"><td>Est. yearly income</td><td class="num" id="sM">$0.00</td><td class="num big" id="sY">$0.00</td></tr>
+      </tbody>
+    </table>
+    <p class="note">Yearly = monthly x 12. Taxed income is pay before taxes. VA disability compensation is generally not taxed, so it is totaled separately. This is an estimate only, not tax or financial advice.</p>
+  </div>
+
+  <div class="actions">
+    <button type="button" class="btn" onclick="window.print()">Print</button>
+    <button type="button" class="btn ghost" id="clear">Clear all</button>
+  </div>
+
+  <footer>Built by Veteran Vision Media<i>Mischief managed.</i></footer>
+</main>
+<script>
+(function(){
+  var fmt = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'});
+  var rows = document.getElementById('rows');
+
+  function addRow(type){
+    var r = document.createElement('div');
+    r.className = 'row';
+    r.innerHTML =
+      '<select class="t" aria-label="Income type">' +
+        '<option value="taxed">Taxed</option>' +
+        '<option value="va">VA</option>' +
+      '</select>' +
+      '<input class="d" type="text" placeholder="e.g. Job, part-time, pension" aria-label="Description">' +
+      '<div class="money"><span>$</span><input class="a" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00" aria-label="Monthly amount"></div>' +
+      '<button type="button" class="del" aria-label="Remove line">&times;</button>';
+    r.querySelector('.t').value = type || 'taxed';
+    r.querySelector('.del').addEventListener('click', function(){
+      if (rows.children.length > 1) { r.remove(); } else { r.querySelector('.a').value=''; r.querySelector('.d').value=''; }
+      calc();
+    });
+    r.addEventListener('input', calc);
+    r.addEventListener('change', calc);
+    rows.appendChild(r);
+    return r;
+  }
+
+  function set(id,v){ document.getElementById(id).textContent = fmt.format(v); }
+
+  function calc(){
+    var t = 0, v = 0;
+    Array.prototype.forEach.call(rows.children, function(r){
+      var amt = parseFloat(r.querySelector('.a').value);
+      if (isNaN(amt) || amt < 0) amt = 0;
+      if (r.querySelector('.t').value === 'va') v += amt; else t += amt;
+    });
+    set('tM',t); set('tY',t*12);
+    set('vM',v); set('vY',v*12);
+    set('sM',t+v); set('sY',(t+v)*12);
+  }
+
+  document.getElementById('add').addEventListener('click', function(){
+    addRow('taxed').querySelector('.a').focus();
+  });
+  document.getElementById('clear').addEventListener('click', function(){
+    rows.innerHTML = ''; addRow('taxed'); addRow('va'); calc();
+  });
+
+  addRow('taxed'); addRow('va'); calc();
+})();
+</script>
+</body>
+</html>
